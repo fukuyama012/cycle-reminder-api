@@ -12,7 +12,8 @@ FROM alpine:latest
 RUN apk add --update --no-cache tzdata && \
 cp /usr/share/zoneinfo/Asia/Tokyo /etc/localtime && \
 echo "Asia/Tokyo" > /etc/timezone && \
-apk del tzdata
+apk del tzdata && rm -rf /var/cache/apk/*
 
 COPY --from=builder /go/bin/api /go/bin/api
+EXPOSE 1323
 ENTRYPOINT ["/go/bin/api"]
