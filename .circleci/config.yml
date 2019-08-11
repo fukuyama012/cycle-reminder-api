@@ -14,7 +14,7 @@ jobs:
 
       - restore_cache:
           keys:
-            - golang-{{.Environment.CACHE_VERSION}}-1.12
+            - golang-get-1.12
 
       - run: |
           GO111MODULE=off
@@ -29,20 +29,20 @@ jobs:
           GO111MODULE=on
 
       - save_cache:
-          key: golang-{{.Environment.CACHE_VERSION}}-1.12
+          key: golang-get-1.12
           paths:
             - /home/circleci/go
 
       - restore_cache:
           keys:
-            - go-module-cache-{{.Environment.CACHE_VERSION}}-{{ checksum "api/go.sum" }}
+            - go-module-cache-{{ checksum "api/go.sum" }}
 
       - run:
           command: go mod download
           working_directory: api
 
       - save_cache:
-          key: go-module-cache-{{.Environment.CACHE_VERSION}}-{{ checksum "api/go.sum" }}
+          key: go-module-cache-{{ checksum "api/go.sum" }}
           paths:
             - $GOPATH/pkg/mod/cache
 
@@ -54,26 +54,27 @@ jobs:
             done
           working_directory: api
           
-      - run: |
-          export MYSQL_USER=root
-          export MYSQL_PASSWORD=
-          export MYSQL_DATABASE=circle_test
-          export MYSQL_PORT=3306
-          export MYSQL_ADDRESS=127.0.0.1
-          export SENDGRID_API_KEY=
+      - run:
+          command: |
+            export MYSQL_USER=root
+            export MYSQL_PASSWORD=
+            export MYSQL_DATABASE=circle_test
+            export MYSQL_PORT=3306
+            export MYSQL_ADDRESS=127.0.0.1
+            export SENDGRID_API_KEY=
 
-          dockerize -wait tcp://localhost:3306 -timeout 1m
-          
-          cd api
-          mkdir -p /tmp/test-results/go
-          echo "mode: set" >> /tmp/coverage.out
-          for PKG in $(go list ./...| grep -v vendor); do
-            go test -v -coverprofile=tmp.txt $PKG -p 1 | tee -a /tmp/test-results/go/test.out
-            cat tmp.txt | tail -n +2 >> /tmp/coverage.out
-            rm -f tmp.txt
-          done
-          go tool cover -html=/tmp/coverage.out  -o /tmp/coverage.html
-          /home/circleci/go/bin/go-junit-report < /tmp/test-results/go/test.out > /tmp/test-results/go/test-report.xml
+            dockerize -wait tcp://localhost:3306 -timeout 1m
+            
+            mkdir -p /tmp/test-results/go
+            echo "mode: set" >> /tmp/coverage.out
+            for PKG in $(go list ./...| grep -v vendor); do
+              go test -v -coverprofile=tmp.txt $PKG -p 1 | tee -a /tmp/test-results/go/test.out
+              cat tmp.txt | tail -n +2 >> /tmp/coverage.out
+              rm -f tmp.txt
+            done
+            go tool cover -html=/tmp/coverage.out  -o /tmp/coverage.html
+            /home/circleci/go/bin/go-junit-report < /tmp/test-results/go/test.out > /tmp/test-results/go/test-report.xml
+          working_directory: api
           
       - store_test_results:
           path: /tmp/test-results
@@ -84,10 +85,12 @@ jobs:
       - run: |
           echo $GCLOUD_SERVICE_KEY | docker login --password-stdin -u _json_key https://asia.gcr.io
               
-      - run: |
-          export IMAGE_TAG=$(echo $CIRCLE_BRANCH | sed -e 's/\//-/g')
-          docker build -t asia.gcr.io/$GCP_PROJECT_NAME/cycle-reminder-api:${IMAGE_TAG} .
-          docker push asia.gcr.io/$GCP_PROJECT_NAME/cycle-reminder-api:${IMAGE_TAG}
+      - run:
+          command: |
+            export IMAGE_TAG=$(echo $CIRCLE_BRANCH | sed -e 's/\//-/g')
+            docker build -t asia.gcr.io/$GCP_PROJECT_NAME/cycle-reminder-api:${IMAGE_TAG} .
+            docker push asia.gcr.io/$GCP_PROJECT_NAME/cycle-reminder-api:${IMAGE_TAG}
+          working_directory: api
 
 workflows:
   version: 2
