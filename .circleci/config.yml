@@ -1,0 +1,88 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/golang:1.12.7
+        environment:
+          GO111MODULE: "on"
+      - image: circleci/mysql:5.7
+        command: [--character-set-server=utf8mb4, --collation-server=utf8mb4_general_ci, --default-storage-engine=innodb]
+    working_directory: /go/src/github.com/fukuyama012/cycle-reminder-api/api
+    steps:
+      - setup_remote_docker
+      - checkout
+
+      - restore_cache:
+          keys:
+            - golang-{{.Environment.CACHE_VERSION}}-1.12
+
+      - run: |
+          export GOPATH=/home/circleci/go
+          mkdir -p $GOPATH
+          if [ ! -e $GOPATH/bin/go-junit-report ]; then
+            go get github.com/jstemmer/go-junit-report
+          fi
+          if [ ! -e $GOPATH/bin/sql-migrate ]; then
+            go get github.com/rubenv/sql-migrate/...
+          fi
+
+      - save_cache:
+          key: golang-{{.Environment.CACHE_VERSION}}-1.12
+          paths:
+            - /home/circleci/go
+
+      - restore_cache:
+          keys:
+            - go-module-cache-{{.Environment.CACHE_VERSION}}-{{ checksum "go.sum" }}
+
+      - run:
+          command: go mod download
+
+      - save_cache:
+          key: go-module-cache-{{.Environment.CACHE_VERSION}}-{{ checksum "go.sum" }}
+          paths:
+            - $GOPATH/pkg/mod/cache
+
+      - run:
+          name: format test
+          command: go fmt $(go list ./...)
+          
+      - run: |
+          dockerize -wait tcp://localhost:3306 -timeout 1m
+          
+          export MYSQL_USER=root
+          export MYSQL_PASSWORD=
+          export MYSQL_DATABASE=circle_test
+          export MYSQL_PORT=3306
+          export MYSQL_ADDRESS=127.0.0.1
+          export SENDGRID_API_KEY=
+          
+          mkdir -p /tmp/test-results/go
+          echo "mode: set" >> /tmp/coverage.out
+          for PKG in $(go list ./...| grep -v vendor); do
+            go test -v -coverprofile=tmp.txt $PKG -p 1 | tee -a /tmp/test-results/go/test.out
+            cat tmp.txt | tail -n +2 >> /tmp/coverage.out
+            rm -f tmp.txt
+          done
+          go tool cover -html=/tmp/coverage.out  -o /tmp/coverage.html
+          /home/circleci/go/bin/go-junit-report < /tmp/test-results/go/test.out > /tmp/test-results/go/test-report.xml
+          
+      - store_test_results:
+          path: /tmp/test-results
+
+      - store_artifacts:
+          path: /tmp/coverage.html
+          
+      - run: |
+          echo $GCLOUD_SERVICE_KEY | docker login --password-stdin -u _json_key https://asia.gcr.io
+              
+      - run: |
+          export IMAGE_TAG=$(echo $CIRCLE_BRANCH | sed -e 's/\//-/g')
+          docker build -t asia.gcr.io/$GCP_PROJECT_NAME/cycle-reminder-api:${IMAGE_TAG} .
+          docker push asia.gcr.io/$GCP_PROJECT_NAME/cycle-reminder-api:${IMAGE_TAG}
+
+workflows:
+  version: 2
+  build_and_deploy:
+    jobs:
+    - build
