@@ -84,7 +84,14 @@ jobs:
           
       - run: |
           echo $GCLOUD_SERVICE_KEY | docker login --password-stdin -u _json_key https://asia.gcr.io
-              
+             
+      - run: |
+          if [ $CIRCLE_BRANCH = 'master' ]; then
+            docker pull asia.gcr.io/$GCP_PROJECT_NAME/cycle-reminder-api:master
+            docker tag asia.gcr.io/$GCP_PROJECT_NAME/cycle-reminder-api:master asia.gcr.io/$GCP_PROJECT_NAME/cycle-reminder-api:master-prev
+            docker push asia.gcr.io/$GCP_PROJECT_NAME/cycle-reminder-api:master-prev
+          fi
+          
       - run:
           command: |
             export IMAGE_TAG=$(echo $CIRCLE_BRANCH | sed -e 's/\//-/g')
