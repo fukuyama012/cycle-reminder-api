@@ -13,4 +13,8 @@
 
 # jetbrain
 .idea
+
 .DS_Store
+
+# direnv
+.envrc

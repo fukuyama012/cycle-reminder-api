@@ -54,14 +54,14 @@ jobs:
           
       - run:
           command: |
-            export MYSQL_USER=root
-            export MYSQL_PASSWORD=
-            export MYSQL_DATABASE=circle_test
-            export MYSQL_PORT=3306
-            export MYSQL_ADDRESS=127.0.0.1
+            export DB_USER=root
+            export DB_PASSWORD=
+            export DB_SCHEMA=circle_test
+            export DB_ADDRESS=127.0.0.1:3306
             export SENDGRID_API_KEY=
 
             dockerize -wait tcp://localhost:3306 -timeout 1m
+            /home/circleci/go/bin/sql-migrate up -config db/conf.yml
             
             mkdir -p /tmp/test-results/go
             echo "mode: set" >> /tmp/coverage.out
