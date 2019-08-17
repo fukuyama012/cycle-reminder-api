@@ -35,14 +35,13 @@ jobs:
 
       - restore_cache:
           keys:
-            - go-module-{{.Environment.CACHE_VERSION}}-{{ checksum "api/go.sum" }}
+            - go-module-{{.Environment.CACHE_VERSION}}-{{ checksum "go.sum" }}
 
       - run:
           command: go mod download
-          working_directory: api
 
       - save_cache:
-          key: go-module-{{.Environment.CACHE_VERSION}}-{{ checksum "api/go.sum" }}
+          key: go-module-{{.Environment.CACHE_VERSION}}-{{ checksum "go.sum" }}
           paths:
             - /go/pkg/mod/cache
 
@@ -52,7 +51,6 @@ jobs:
             for PKG in $(go list ./...); do
             go fmt $PKG
             done
-          working_directory: api
           
       - run:
           command: |
@@ -74,7 +72,6 @@ jobs:
             done
             go tool cover -html=/tmp/coverage.out  -o /tmp/coverage.html
             /home/circleci/go/bin/go-junit-report < /tmp/test-results/go/test.out > /tmp/test-results/go/test-report.xml
-          working_directory: api
           
       - store_test_results:
           path: /tmp/test-results
@@ -97,7 +94,6 @@ jobs:
             export IMAGE_TAG=$(echo $CIRCLE_BRANCH | sed -e 's/\//-/g')
             docker build -t asia.gcr.io/$GCP_PROJECT_NAME/cycle-reminder-api:${IMAGE_TAG} .
             docker push asia.gcr.io/$GCP_PROJECT_NAME/cycle-reminder-api:${IMAGE_TAG}
-          working_directory: api
 
 workflows:
   version: 2
