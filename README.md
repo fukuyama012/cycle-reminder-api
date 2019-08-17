@@ -1,6 +1,8 @@
 # cycle-reminder-api
 web service, backend api
 
+[![codecov](https://codecov.io/gh/fukuyama012/cycle-reminder-api/branch/master/graph/badge.svg)](https://codecov.io/gh/fukuyama012/cycle-reminder-api)
+
 #### 概要
 
 以下リポジトリを別アーキテクチャで作り直す。  
