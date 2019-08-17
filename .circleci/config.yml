@@ -1,4 +1,8 @@
-version: 2
+version: 2.1
+
+orbs:
+  codecov: codecov/codecov@1.0.5
+  
 jobs:
   build:
     docker:
@@ -72,6 +76,9 @@ jobs:
             done
             go tool cover -html=/tmp/coverage.out  -o /tmp/coverage.html
             /home/circleci/go/bin/go-junit-report < /tmp/test-results/go/test.out > /tmp/test-results/go/test-report.xml
+          
+      - codecov/upload:
+          file: /tmp/coverage.out
           
       - store_test_results:
           path: /tmp/test-results
