@@ -1,7 +1,7 @@
 # cycle-reminder-api
 web service, backend api
 
-[![CircleCI](https://circleci.com/gh/fukuyama012/cycle-reminder-api/tree/master.svg?style=svg)](https://circleci.com/gh/fukuyama012/cycle-reminder-api/tree/master)
+[![CircleCI](https://circleci.com/gh/fukuyama012/cycle-reminder-api/tree/master.svg?style=svg&circle-token=714727470836058e332f8e975c28946bf7cc6dab)](https://circleci.com/gh/fukuyama012/cycle-reminder-api/tree/master)
 [![codecov](https://codecov.io/gh/fukuyama012/cycle-reminder-api/branch/master/graph/badge.svg)](https://codecov.io/gh/fukuyama012/cycle-reminder-api)
 [![MIT License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE)
 
