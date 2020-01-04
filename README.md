@@ -19,7 +19,7 @@ https://github.com/fukuyama012/cycle-reminder
 * Circle CI
 * GKE, Cloud SQL
 
-#### 全体として以下対応予定  
+#### 関連リポジトリ 
 
-* 出来ればIaC(Terraform)
-* SPA（React）
+* https://github.com/fukuyama012/cycle-reminder-infra (Terraform)
+* SPA
